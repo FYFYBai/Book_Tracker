@@ -19,6 +19,8 @@ const SearchPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortType, setSortType] = useState("");
   const [pendingPageSlice, setPendingPageSlice] = useState(null);
+  const [firstSearchDone, setFirstSearchDone] = useState(false);
+  const [lastFetchedQuery, setLastFetchedQuery] = useState("");
 
   // Constants for paging and API result batch size
   const booksPerPage = 10;
@@ -30,18 +32,21 @@ const SearchPage = () => {
     setSearchParams({ q: newQuery, page: newPage });
     setQuery(newQuery);
     setCurrentPage(newPage);
+    setFirstSearchDone(false); // <-- allow re-search
   };
 
   // Fetch initial search result from Google Books API
   const handleSearch = async () => {
     const searchTerm = query.trim();
     if (!searchTerm) {
+      // Clear results if empty
       setBooks([]);
       setDisplayBooks([]);
       setSelectedCategory(null);
       return;
     }
 
+    // Proceed only if searchTerm is valid
     setLoading(true);
     try {
       const encoded = encodeURIComponent(searchTerm);
@@ -55,6 +60,7 @@ const SearchPage = () => {
       setApiStartIndex(apiPageSize);
       setSelectedCategory(null);
       setSortType("");
+      setLastFetchedQuery(searchTerm);
     } catch (err) {
       console.error("Error fetching books:", err);
     } finally {
@@ -64,9 +70,10 @@ const SearchPage = () => {
 
   // Fetch next batch of books and append to existing list
   const fetchMoreBooks = async () => {
-    if (books.length >= maxBooks) return;
+    const searchTerm = query.trim();
+    if (!searchTerm || books.length >= maxBooks) return;
 
-    const encoded = encodeURIComponent(query);
+    const encoded = encodeURIComponent(searchTerm);
     const res = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${encoded}&startIndex=${apiStartIndex}&maxResults=${apiPageSize}`
     );
@@ -84,34 +91,33 @@ const SearchPage = () => {
     const urlQuery = searchParams.get("q") || "";
     const urlPage = parseInt(searchParams.get("page") || "1", 10);
 
-    if (query !== urlQuery) {
-      setQuery(urlQuery);
-      setCurrentPage(urlPage);
+    setQuery(urlQuery);
+    setCurrentPage(urlPage);
 
-      if (!urlQuery) return;
-
+    // Only fetch if:
+    // 1. There’s a query
+    // 2. And it's different from lastFetchedQuery
+    if (urlQuery && urlQuery !== lastFetchedQuery) {
       const delay = setTimeout(() => {
-        handleSearch(); // only run if query changes
-      }, 500);
-
+        handleSearch();
+      }, 300);
       return () => clearTimeout(delay);
-    } else {
-      setCurrentPage(urlPage); // just update page if that's all that changed
     }
   }, [searchParams]);
 
   // Main logic to slice and display filtered books
   useEffect(() => {
+    // Start with the full book list
     let filtered = [...books];
 
-    // Filter by category if selected
+    // Apply category filter if selected
     if (selectedCategory) {
       filtered = filtered.filter((book) =>
         book.volumeInfo?.categories?.includes(selectedCategory)
       );
     }
 
-    // Sort by newest or average rating
+    // Apply sorting
     if (sortType === "newest") {
       filtered.sort((a, b) =>
         (b.volumeInfo.publishedDate || "").localeCompare(
@@ -125,14 +131,24 @@ const SearchPage = () => {
       );
     }
 
+    // Determine the range of books for the current page
     const start = (currentPage - 1) * booksPerPage;
     const end = start + booksPerPage;
 
-    // If books for this page are not yet fetched, delay rendering
-    if (end > filtered.length) {
+    // If we don’t have enough books loaded yet to show this page,
+    // and haven’t hit the maxBooks limit, trigger a fetch
+    if (end > filtered.length && books.length < maxBooks) {
       setPendingPageSlice({ start, end });
-      fetchMoreBooks();
+
+      // Check if fetching 30 more books would be enough to cover this page
+      const stillNeeded = end - books.length;
+      const willHaveEnough = books.length + apiPageSize >= end;
+
+      if (willHaveEnough) {
+        fetchMoreBooks(); // fetch only if it would help cover the current page
+      }
     } else {
+      // If we have enough data, just display the correct slice
       setDisplayBooks(filtered.slice(start, end));
     }
   }, [books, selectedCategory, currentPage, sortType]);
