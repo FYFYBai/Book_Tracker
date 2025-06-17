@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Navbar, Nav, Container, Button, Image } from "react-bootstrap";
 import { useAuth0 } from "@auth0/auth0-react";
+import AuthButton from './AuthButton';
 
 const AppNavbar = () => {
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
@@ -22,7 +23,7 @@ const AppNavbar = () => {
             </Nav.Link>
           </Nav>
 
-          {/* Auth Section */}
+          {/* Old Auth Section 
           <Nav className="ms-auto align-items-center">
             {isAuthenticated && user && (
               <>
@@ -62,6 +63,12 @@ const AppNavbar = () => {
                 Login
               </Button>
             )}
+          </Nav>
+          */}
+
+          {/* Simplified Auth Section */}
+          <Nav className="ms-auto">
+            <AuthButton />
           </Nav>
         </Navbar.Collapse>
       </Container>
