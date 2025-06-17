@@ -33,10 +33,9 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-exports.getOrCreateUser = async (req, res) => {
+exports.syncUser = async (req, res) => {
   try {
     const { auth0Id, email, name } = req.body;
-    
     let user = await User.findOne({ auth0Id });
     
     if (!user) {
@@ -49,31 +48,6 @@ exports.getOrCreateUser = async (req, res) => {
       await user.save();
     }
     
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.updateUserBooks = async (req, res) => {
-  try {
-    const { auth0Id, bookData, action } = req.body;
-    const user = await User.findOne({ auth0Id });
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    if (action === 'save') {
-      const bookExists = user.savedBooks.some(book => book.bookId === bookData.bookId);
-      if (!bookExists) {
-        user.savedBooks.push(bookData);
-      }
-    } else if (action === 'unsave') {
-      user.savedBooks = user.savedBooks.filter(book => book.bookId !== bookData.bookId);
-    }
-    
-    await user.save();
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });

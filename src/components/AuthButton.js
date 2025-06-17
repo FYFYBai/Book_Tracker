@@ -1,8 +1,26 @@
+import axios from 'axios';
+import { useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button, Image } from "react-bootstrap";
 
 const AuthButton = () => {
-  const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
+  const { loginWithRedirect, logout, user, isAuthenticated, getIdTokenClaims } = useAuth0();
+
+  useEffect(() => {
+    const syncUser = async () => {
+      if (isAuthenticated && user) {
+        const token = await getIdTokenClaims();
+        await axios.post(`${process.env.API_URL}/users/sync-user`, {
+          auth0Id: user.sub,
+          email: user.email,
+          name: user.name
+        }, {
+          headers: { Authorization: `Bearer ${token.__raw}` }
+        });
+      }
+    };
+    syncUser();
+  }, [isAuthenticated, user]);
 
   if (isAuthenticated && user) {
     return (
