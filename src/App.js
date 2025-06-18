@@ -10,6 +10,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import Spinner from "react-bootstrap/Spinner";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import UserSync from "./components/UserSync";
 
 function App() {
   const { isLoading, error } = useAuth0();
@@ -34,6 +35,7 @@ function App() {
 
   return (
     <Router>
+      <UserSync />
       <AppNavbar />
       <div className="main-content container mt-4">
         <Routes>

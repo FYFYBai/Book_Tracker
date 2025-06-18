@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// User Schema for the mongoose collection storage
 const UserSchema = new mongoose.Schema({
   auth0Id: {
     type: String,

@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const userRoutes = require('./routes/userRoutes');
+const userRoutes = require('./routes/UserRoutes');
 
 const app = express();
 
@@ -12,14 +12,6 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('BookTracker API is running');
-});
-
-// Add this health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
 });
 
 // Routes
