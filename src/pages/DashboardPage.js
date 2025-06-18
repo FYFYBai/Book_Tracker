@@ -1,9 +1,6 @@
 import { Container, Card, Button } from "react-bootstrap";
-import { useAuth0 } from "@auth0/auth0-react";
 
 const DashboardPage = () => {
-  const { user } = useAuth0();
-
   return (
     <Container className="mt-4">
       <h2 className="mb-4">My Saved Books</h2>
