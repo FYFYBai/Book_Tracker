@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 // Use Sync-User axios call through this service 
 import { syncAuth0User } from '../services/authService';
@@ -6,10 +6,13 @@ import { syncAuth0User } from '../services/authService';
 // Component that just renders when there is a change in user to sync that user
 const UserSync = () => {
   const { user, isAuthenticated, getIdTokenClaims } = useAuth0();
+  const hasSynced = useRef(false);
 
   useEffect(() => {
-    const handleUserSync = async () => {
-      if (isAuthenticated && user) {
+    if (isAuthenticated && user && !hasSynced.current) {
+      hasSynced.current = true;
+
+      const handleUserSync = async () => {
         try {
           const token = await getIdTokenClaims();
           // use service to call syncUser route
@@ -18,10 +21,10 @@ const UserSync = () => {
         } catch (error) {
           console.error('User synchronization failed:', error);
         }
-      }
+      };
+      
+      handleUserSync();
     };
-
-    handleUserSync();
   }, [isAuthenticated, user, getIdTokenClaims]);
 
   return null; // This component doesn't render anything
