@@ -66,3 +66,26 @@ exports.syncUser = async (req, res) => {
     });
   }
 };
+
+// Add or remove book from user's savedBooks
+exports.updateUserBooks = async (req, res) => {
+  const { auth0Id, bookData, action } = req.body;
+
+  try {
+    const user = await User.findOne({ auth0Id });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const alreadySaved = user.savedBooks.some(book => book.bookId === bookData.bookId);
+
+    if (action === 'add' && !alreadySaved) {
+      user.savedBooks.push(bookData);
+    } else if (action === 'remove') {
+      user.savedBooks = user.savedBooks.filter(book => book.bookId !== bookData.bookId);
+    }
+
+    await user.save();
+    res.status(200).json(user.savedBooks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
