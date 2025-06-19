@@ -53,3 +53,24 @@ body {
     transform: translateY(0);
   }
 }
+
+.navbar-custom {
+  background-color: #2c3e50 !important; /* Deep blue/gray */
+  border-bottom: 2px solid #18bc9c; /* Accent line (turquoise green) */
+}
+
+.navbar-custom .navbar-brand,
+.navbar-custom .nav-link,
+.navbar-custom .btn {
+  color: #ffffff !important;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .btn:hover {
+  color: #18bc9c !important;
+}
+
+/* Target only the light variant of the theme toggle button */
+.theme-toggle-btn.btn-light {
+  color: #212529 !important; /* Black text for visibility */
+}
