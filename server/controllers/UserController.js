@@ -59,11 +59,7 @@ exports.syncUser = async (req, res) => {
     // Return existing user
     res.status(200).json(user);
   } catch (err) {
-    console.error('Sync error:', err);
-    res.status(500).json({ 
-      error: 'Failed to sync user',
-      details: err.message 
-    });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -85,6 +81,29 @@ exports.updateUserBooks = async (req, res) => {
 
     await user.save();
     res.status(200).json(user.savedBooks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getUserBooks = async (req, res) => {
+  try {
+    const { auth0Id } = req.params;
+    
+    if (!auth0Id) {
+      return res.status(400).json({ error: 'auth0Id is required' });
+    }
+
+    const user = await User.findOne({ auth0Id }).select('savedBooks');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({
+      books: user.savedBooks,
+      count: user.savedBooks.length
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
