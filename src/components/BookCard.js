@@ -4,22 +4,28 @@ import { useAuth0 } from "@auth0/auth0-react";
 import useSavedBooks from "../hooks/useSavedBooks";
 
 const BookCard = ({ book }) => {
-  const { id, volumeInfo } = book;
-  const { title, authors, description, imageLinks, infoLink } = volumeInfo;
+  // Retrieving the book data whether it is coming directly from the google books api or from the datbase
+  const isGoogleBook = !!book.volumeInfo;
+  const bookData = isGoogleBook ? {
+    bookId: book.id,
+    title: book.volumeInfo.title,
+    authors: book.volumeInfo.authors || [],
+    description: book.volumeInfo.description || "",
+    image: book.volumeInfo.imageLinks?.thumbnail,
+    link: book.volumeInfo.infoLink || ""
+  } : {
+    bookId: book.bookId,
+    title: book.title,
+    authors: book.authors || [],
+    description: book.description || "",
+    image: book.image,
+    link: book.link || ""
+  };
 
-  const thumbnail = imageLinks?.thumbnail || "https://dummyimage.com/128x192/cccccc/000000&text=No+Cover";
-
+  // simplifying the bookData to easily be referenced in html
+  const { title, authors, description, image, link } = bookData;
   const { isAuthenticated } = useAuth0();
   const { isBookSaved, addBook, removeBook } = useSavedBooks();
-
-  const bookData = {
-    bookId: id,
-    title,
-    authors: authors || [],
-    description: description || "",
-    image: thumbnail,
-    link: infoLink || ""
-  };
 
   const handleAdd = () => addBook(bookData);
   const handleRemove = () => removeBook(bookData);
@@ -28,21 +34,41 @@ const BookCard = ({ book }) => {
     <Card className="mb-4 shadow-sm book-card-hover">
       <Card.Body>
         <div className="d-flex">
-          <img src={thumbnail} alt={title} className="me-3" style={{ height: "192px", width: "128px", objectFit: "cover", borderRadius: "5px", backgroundColor: "#f0f0f0", flexShrink: 0 }} />
+          <img 
+            src={image} 
+            alt={title} 
+            className="me-3" 
+            style={{ 
+              height: "192px", 
+              width: "128px", 
+              objectFit: "cover", 
+              borderRadius: "5px", 
+              backgroundColor: "#f0f0f0", 
+              flexShrink: 0 
+            }} 
+          />
 
           <div style={{ flex: 1 }}>
             <Card.Title className="text-truncate" title={title}>{title}</Card.Title>
-            <Card.Subtitle className="mb-2 text-muted text-truncate" title={authors?.join(", ")}>{authors?.join(", ") || "Unknown Author"}</Card.Subtitle>
+            <Card.Subtitle className="mb-2 text-muted text-truncate" title={authors?.join(", ")}>
+              {authors?.join(", ") || "Unknown Author"}
+            </Card.Subtitle>
             <Card.Text className="book-description-truncate">
               {description ? description.slice(0, 160) + "..." : "No description available."}
             </Card.Text>
 
-            <Button as={Link} to={`/book/${id}`} variant="primary" size="sm" className="me-2">
+            <Button 
+              as={Link} 
+              to={`/book/${bookData.bookId}`} 
+              variant="primary" 
+              size="sm" 
+              className="me-2"
+            >
               View Details
             </Button>
 
             {isAuthenticated && (
-              isBookSaved(id) ? (
+              isBookSaved(bookData.bookId) ? (
                 <>
                   <Button variant="secondary" size="sm" disabled className="me-2">
                     Already in My Books
