@@ -1,11 +1,13 @@
+import { useContext } from "react";
 import { Link } from "react-router-dom";
-import { Navbar, Nav, Container } from "react-bootstrap";
-import AuthButton from './AuthButton';
+import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import AuthButton from "./AuthButton";
+import { ThemeContext } from "../ThemeContext";
 
 const AppNavbar = () => {
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   return (
-    <Navbar bg="dark" variant="dark" expand="lg">
+    <Navbar bg={theme} variant={theme} expand="lg">
       <Container>
         <Navbar.Brand as={Link} to="/">
           Book Tracker
@@ -64,8 +66,20 @@ const AppNavbar = () => {
           </Nav>
           */}
 
-          {/* Simplified Auth Section */}
+          {/* Simplified Auth Section
           <Nav className="ms-auto">
+            <AuthButton />
+          </Nav> */}
+          {/* Simplified Auth + Theme Switch Section */}
+          <Nav className="ms-auto align-items-center">
+            <Button
+              variant={theme === "dark" ? "light" : "dark"}
+              size="sm"
+              className="me-2"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+            </Button>
             <AuthButton />
           </Nav>
         </Navbar.Collapse>
